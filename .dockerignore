@@ -1,0 +1,13 @@
+.git
+.venv
+venv
+node_modules
+__pycache__
+*.pyc
+data/timesheetiq.db
+data/uploads
+data/exports
+*.pkl
+.DS_Store
+.env
+.env.local

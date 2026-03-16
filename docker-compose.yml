@@ -1,0 +1,11 @@
+services:
+  timesheetiq:
+    build: .
+    container_name: timesheetiq
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
