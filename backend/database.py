@@ -57,6 +57,9 @@ def init_db() -> None:
                 rules_triggered TEXT,
                 ml_scores TEXT,
                 explanation TEXT,
+                ai_recommended INTEGER DEFAULT 0,
+                flag_reason TEXT DEFAULT '',
+                model_agreement INTEGER DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -126,6 +129,9 @@ def insert_findings(upload_id: int, findings: Iterable[Dict[str, Any]]) -> None:
             json.dumps(item.get("rules_triggered", [])),
             json.dumps(item.get("ml_scores", {})),
             str(item.get("explanation", "")),
+            int(item.get("ai_recommended", 0)),
+            str(item.get("flag_reason", "")),
+            int(item.get("model_agreement", 0)),
         )
         for item in findings
     ]
@@ -136,9 +142,10 @@ def insert_findings(upload_id: int, findings: Iterable[Dict[str, Any]]) -> None:
             """
             INSERT INTO findings(
                 upload_id, row_index, employee, department, date, hours, task, client,
-                composite_score, severity, rules_triggered, ml_scores, explanation
+                composite_score, severity, rules_triggered, ml_scores, explanation,
+                ai_recommended, flag_reason, model_agreement
             )
-            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             rows,
         )

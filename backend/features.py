@@ -230,6 +230,50 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     data["impossible_flag"] = (data["hours"] > 24.0) | (data["daily_total_hours"] > 24.0)
     data["suspicious_round_hours"] = data["suspicious_round_hours"].fillna(False)
 
+    # ── Peer comparison: ratio vs department median & percentile rank ──
+    dept_median_daily = daily.groupby("department")["daily_total_hours"].transform("median")
+    daily["peer_ratio"] = (daily["daily_total_hours"] / dept_median_daily.replace(0, np.nan)).fillna(1.0)
+    daily["peer_rank_percentile"] = daily.groupby("department")["daily_total_hours"].rank(pct=True) * 100.0
+    data = data.merge(
+        daily[["employee", "date_parsed", "peer_ratio", "peer_rank_percentile"]],
+        on=["employee", "date_parsed"],
+        how="left",
+    )
+    data["peer_ratio"] = data["peer_ratio"].fillna(1.0)
+    data["peer_rank_percentile"] = data["peer_rank_percentile"].fillna(50.0)
+
+    # ── Weekly hours trend (slope) per employee ──
+    emp_weekly = (
+        daily.groupby(["employee", "year", "week_number"], as_index=False)["daily_total_hours"]
+        .sum()
+        .rename(columns={"daily_total_hours": "_wt"})
+    )
+    emp_weekly["_seq"] = emp_weekly.groupby("employee").cumcount()
+
+    def _slope(g: pd.DataFrame) -> float:
+        if len(g) < 3:
+            return 0.0
+        x = g["_seq"].to_numpy(dtype=float)
+        y = g["_wt"].to_numpy(dtype=float)
+        mx, my = x.mean(), y.mean()
+        denom = ((x - mx) ** 2).sum()
+        if denom < 1e-9:
+            return 0.0
+        return float(((x - mx) * (y - my)).sum() / denom)
+
+    trend_map = emp_weekly.groupby("employee").apply(_slope)
+    data["weekly_hours_trend"] = data["employee"].map(trend_map).fillna(0.0)
+
+    # ── Round-number ratio per employee ──
+    data["_is_round"] = np.isclose(data["hours"] % 1.0, 0.0, atol=1e-2)
+    round_ratio = data.groupby("employee")["_is_round"].transform("mean")
+    data["round_number_ratio"] = round_ratio.fillna(0.0)
+    data.drop(columns=["_is_round"], inplace=True)
+
+    # ── Duplicate entry flag (same employee+date+task+hours) ──
+    dup_cols = ["employee", "date_parsed", "task", "hours"]
+    data["is_duplicate_entry"] = data.duplicated(subset=dup_cols, keep=False) & (data["hours"] > 0)
+
     numeric_fill_zero = [
         "daily_total_hours",
         "daily_entry_count",
@@ -251,6 +295,10 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         "weekend_frequency_30d",
         "task_rarity_score",
         "hours_deviation_from_8",
+        "peer_ratio",
+        "peer_rank_percentile",
+        "weekly_hours_trend",
+        "round_number_ratio",
     ]
     for col in numeric_fill_zero:
         data[col] = pd.to_numeric(data[col], errors="coerce").fillna(0.0)

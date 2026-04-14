@@ -34,6 +34,11 @@ RULE_METADATA: Dict[str, RuleSpec] = {
     "R13": RuleSpec("R13", "Missing Task", "MODERATE"),
     "R14": RuleSpec("R14", "Chronic Overtime", "HIGH"),
     "R15": RuleSpec("R15", "Burnout Pattern", "CRITICAL"),
+    "R16": RuleSpec("R16", "Escalating Hours", "MODERATE"),
+    "R17": RuleSpec("R17", "Ghost Entry", "HIGH"),
+    "R18": RuleSpec("R18", "Round-Number Bias", "MODERATE"),
+    "R19": RuleSpec("R19", "Duplicate Entry", "HIGH"),
+    "R20": RuleSpec("R20", "Project Hopping", "MODERATE"),
 }
 
 
@@ -90,7 +95,16 @@ def apply_rules(df: pd.DataFrame) -> pd.DataFrame:
         "R13": (data["hours"] > 0) & task_blank,
         "R14": data["consecutive_over9_workdays"] > 5,
         "R15": data["burnout_pattern"].astype(bool),
+        "R16": data.get("weekly_hours_trend", pd.Series(0.0, index=data.index)) > 2.0,
+        "R17": pd.Series(False, index=data.index),  # placeholder, computed below
+        "R18": data.get("round_number_ratio", pd.Series(0.0, index=data.index)) > 0.80,
+        "R19": data.get("is_duplicate_entry", pd.Series(False, index=data.index)).astype(bool),
+        "R20": data.get("daily_unique_clients", pd.Series(0, index=data.index)) > 5,
     }
+
+    # R17: Ghost Entry — hours on dates when very few other employees worked
+    date_emp_counts = data.groupby("date_parsed")["employee"].transform("nunique")
+    rule_conditions["R17"] = (date_emp_counts <= 1) & (data["hours"] > 0)
 
     triggered: List[List[str]] = [[] for _ in range(len(data))]
     max_rule_rank = np.zeros(len(data), dtype=int)
@@ -110,4 +124,16 @@ def apply_rules(df: pd.DataFrame) -> pd.DataFrame:
     data["rule_max_severity"] = [RANK_TO_SEVERITY[int(rank)] for rank in max_rule_rank]
     data["rule_max_rank"] = max_rule_rank
 
+    return data
+
+
+def flag_for_review(df: pd.DataFrame) -> pd.DataFrame:
+    """Add ``ai_recommended`` boolean: True when the AI recommends human review."""
+    data = df.copy()
+    score_flag = data["composite_score"] >= 65
+    rule_flag = data["rule_max_rank"] >= SEVERITY_RANK["HIGH"]
+    reviewer_flag = pd.Series(False, index=data.index)
+    if "reviewer_proba" in data.columns:
+        reviewer_flag = pd.to_numeric(data["reviewer_proba"], errors="coerce").fillna(0.0) >= 0.60
+    data["ai_recommended"] = (score_flag | rule_flag | reviewer_flag).astype(bool)
     return data

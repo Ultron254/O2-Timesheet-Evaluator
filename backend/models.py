@@ -329,8 +329,23 @@ def _run_dbscan(df: pd.DataFrame) -> np.ndarray:
         return np.zeros(n, dtype=float)
     X = _standardize_frame(df, DBSCAN_FEATURES)
     X_scaled = StandardScaler().fit_transform(X)
+
+    # Auto-tune eps via k-distance elbow when dataset is manageable
+    eps_value = 0.5
     if n <= LARGE_DBSCAN_THRESHOLD:
-        model = DBSCAN(eps=0.5, min_samples=5, n_jobs=-1)
+        try:
+            k = min(5, n - 1)
+            nn = NearestNeighbors(n_neighbors=k, n_jobs=-1)
+            nn.fit(X_scaled)
+            distances = nn.kneighbors(X_scaled, return_distance=True)[0][:, -1]
+            distances = np.sort(distances)
+            # Use the 90th-percentile knee as eps
+            eps_value = max(0.3, float(np.percentile(distances, 90)))
+        except Exception:
+            eps_value = 0.5
+
+    if n <= LARGE_DBSCAN_THRESHOLD:
+        model = DBSCAN(eps=eps_value, min_samples=5, n_jobs=-1)
         labels = model.fit_predict(X_scaled)
         return (labels == -1).astype(float)
 
@@ -431,6 +446,16 @@ def run_model_ensemble(df: pd.DataFrame, reviewer_model_path: str | Path) -> Tup
         + weights["zscore_norm"] * data["zscore_norm"]
         + weights["reviewer_norm"] * data["reviewer_norm"]
     )
+
+    # ── Model agreement: how many independent signals flag this entry ──
+    agreement = np.zeros(len(data), dtype=int)
+    agreement += ((data["if_norm"] >= 0.75) | (data["if_pred"] == -1)).astype(int)
+    agreement += ((data["lof_norm"] >= 0.75) | (data["lof_pred"] == -1)).astype(int)
+    agreement += (data["dbscan_noise"] >= 1.0).astype(int)
+    agreement += (data["zscore_max"] >= 2.0).astype(int)
+    if reviewer_proba is not None:
+        agreement += (data["reviewer_proba"] >= 0.60).astype(int)
+    data["model_agreement"] = agreement
 
     metadata = {"weights": weights, "reviewer": reviewer_meta}
     return data, metadata

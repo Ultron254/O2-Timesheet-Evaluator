@@ -38,6 +38,9 @@ class FindingResponse(BaseModel):
     rules_triggered: List[str] = Field(default_factory=list)
     ml_scores: Dict[str, Any] = Field(default_factory=dict)
     explanation: str
+    ai_recommended: bool = False
+    flag_reason: str = ""
+    model_agreement: int = 0
     created_at: Optional[datetime] = None
 
 

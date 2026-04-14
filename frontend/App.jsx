@@ -112,6 +112,11 @@ const RULE_EXPLANATIONS = [
   { id: "R13", name: "Missing Task", severity: "MODERATE", condition: "Hours logged but task field empty", rationale: "Hours without task description reduce auditability and make client/billing validation difficult." },
   { id: "R14", name: "Chronic Overtime", severity: "HIGH", condition: "> 5 consecutive workdays with daily total > 9h", rationale: "Persistent overtime suggests sustained risk patterns and should be investigated beyond a one-off day." },
   { id: "R15", name: "Burnout Pattern", severity: "CRITICAL", condition: "Weekend work + > 10h days + > 200h month in same period", rationale: "This compound pattern combines multiple stress signals and is a strong risk indicator for severe anomaly." },
+  { id: "R16", name: "Escalating Hours", severity: "MODERATE", condition: "Weekly hours increasing for 4+ consecutive weeks", rationale: "A steadily rising workload over multiple weeks may indicate scope creep, overbilling, or unsustainable patterns." },
+  { id: "R17", name: "Ghost Entry", severity: "HIGH", condition: "Hours logged on a date with no other employees working", rationale: "Entries on dates when nobody else logged work could indicate fabricated or misattributed timesheets." },
+  { id: "R18", name: "Round-Number Bias", severity: "MODERATE", condition: "> 80% of entries are exact whole numbers", rationale: "Predominantly round numbers suggest estimation rather than actual time tracking — reduces audit reliability." },
+  { id: "R19", name: "Duplicate Entry", severity: "HIGH", condition: "Same employee, date, task, and hours appears multiple times", rationale: "Identical entries are likely copy-paste errors or accidental double submissions." },
+  { id: "R20", name: "Project Hopping", severity: "MODERATE", condition: "> 5 clients/projects in a single day", rationale: "Excessive context switching in one day is unusual and may indicate padding or misallocation of hours." },
 ];
 
 const TECHNICAL_TERMS = [
@@ -189,12 +194,12 @@ function buildTimeline(findings) {
 // ─── Chart Theme ─────────────────────────────────────
 
 const CHART_THEME = {
-  bg: "#131820",
-  grid: "rgba(148, 163, 184, 0.07)",
+  bg: "#0d1520",
+  grid: "rgba(198, 133, 80, 0.06)",
   axis: "#475569",
   tooltip: {
-    backgroundColor: "rgba(15, 23, 42, 0.95)",
-    border: "1px solid rgba(232, 97, 45, 0.2)",
+    backgroundColor: "rgba(11, 17, 32, 0.95)",
+    border: "1px solid rgba(198, 133, 80, 0.25)",
     borderRadius: "12px",
     color: "#f1f5f9",
     fontSize: "0.8125rem",
@@ -400,7 +405,7 @@ function ExplainersPage({ onOpenAnalyzer }) {
       {/* Rules */}
       <div className="glass-card animate-in animate-in-delay-1" style={{ padding: "2rem" }}>
         <h3 className="section-accent" style={{ fontSize: "1.25rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.5rem" }}>
-          Rule Engine (R01–R15)
+          Rule Engine (R01–R20)
         </h3>
         <p style={{ fontSize: "0.8125rem", color: "var(--text-secondary)", marginBottom: "1.25rem" }}>
           Deterministic checks. If a condition matches, the entry is flagged even if ML confidence is low.
@@ -544,6 +549,7 @@ function App() {
   const [chartTab, setChartTab] = useState("distribution");
   const [activePage, setActivePage] = useState("analyzer");
   const [currentPage, setCurrentPage] = useState(0);
+  const [showFlaggedOnly, setShowFlaggedOnly] = useState(true);
   const pollFailureRef = useRef(0);
   const searchTimerRef = useRef(null);
 
@@ -675,6 +681,7 @@ function App() {
 
   const filteredFindings = useMemo(() => {
     let rows = findings.slice();
+    if (showFlaggedOnly) rows = rows.filter((x) => x.ai_recommended);
     if (severityFilter !== "ALL") rows = rows.filter((x) => x.severity === severityFilter);
     if (departmentFilter !== "ALL") rows = rows.filter((x) => x.department === departmentFilter);
     if (employeeFilter !== "ALL") rows = rows.filter((x) => x.employee === employeeFilter);
@@ -694,10 +701,10 @@ function App() {
       return left < right ? 1 : -1;
     });
     return rows;
-  }, [findings, severityFilter, debouncedSearch, departmentFilter, employeeFilter, sortBy, sortDir]);
+  }, [findings, showFlaggedOnly, severityFilter, debouncedSearch, departmentFilter, employeeFilter, sortBy, sortDir]);
 
   // Reset page when filters change
-  useEffect(() => { setCurrentPage(0); }, [severityFilter, debouncedSearch, departmentFilter, employeeFilter]);
+  useEffect(() => { setCurrentPage(0); }, [showFlaggedOnly, severityFilter, debouncedSearch, departmentFilter, employeeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredFindings.length / PAGE_SIZE));
   const pagedFindings = useMemo(
@@ -802,6 +809,9 @@ function App() {
                   <h1 className="gradient-text" style={{ fontSize: "clamp(1.35rem, 2.8vw, 1.85rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}>
                     AI-Powered Timesheet Anomaly Detection
                   </h1>
+                  <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--text-muted)", marginTop: "0.4rem" }}>
+                    Precise. Transparent. Accountable.
+                  </p>
                 </div>
               </div>
 
@@ -859,11 +869,74 @@ function App() {
                 <>
                   <ScoreCards summary={summary} />
 
+                  {/* Flag Statistics Banner */}
+                  {summary.summary_json?.flagged_count != null && (
+                    <div className="glass-card animate-in animate-in-delay-1" style={{ padding: "1.25rem 1.75rem", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                        <span style={{ fontSize: "1.5rem" }}>🔍</span>
+                        <div>
+                          <p style={{ fontSize: "0.9375rem", fontWeight: 600, color: "var(--text-primary)", margin: 0 }}>
+                            <span style={{ color: "var(--accent-orange)" }}>{summary.summary_json.flagged_count.toLocaleString()}</span> entries flagged for review
+                            <span style={{ color: "var(--text-muted)", fontWeight: 400 }}> out of {summary.total_entries.toLocaleString()} total ({summary.summary_json.flagged_pct}%)</span>
+                          </p>
+                          <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: "0.25rem 0 0" }}>
+                            Estimated <span style={{ color: "var(--accent-warm)", fontWeight: 600 }}>{numberFmt.format(summary.summary_json.flagged_hours)}</span> hours at risk
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Top Risk Employees */}
+                  {summary.summary_json?.top_risk_employees?.length > 0 && (
+                    <div className="glass-card animate-in animate-in-delay-2" style={{ padding: "1.5rem" }}>
+                      <h3 className="section-accent" style={{ fontSize: "1rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "1rem" }}>
+                        Top Risk Employees
+                      </h3>
+                      <div className="data-table-wrap" style={{ maxHeight: "18rem", overflow: "auto" }}>
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Employee</th>
+                              <th>Risk Score</th>
+                              <th>Avg Score</th>
+                              <th>Max Score</th>
+                              <th>Flagged</th>
+                              <th>Total</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {summary.summary_json.top_risk_employees.map((emp) => (
+                              <tr key={emp.employee}>
+                                <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{emp.employee}</td>
+                                <td style={{ fontFamily: "'JetBrains Mono', monospace", fontWeight: 600, color: emp.risk_score >= 65 ? "#ef4444" : emp.risk_score >= 45 ? "#f97316" : "var(--text-secondary)" }}>
+                                  {numberFmt.format(emp.risk_score)}
+                                </td>
+                                <td style={{ fontFamily: "'JetBrains Mono', monospace" }}>{numberFmt.format(emp.mean_score)}</td>
+                                <td style={{ fontFamily: "'JetBrains Mono', monospace" }}>{numberFmt.format(emp.max_score)}</td>
+                                <td style={{ fontFamily: "'JetBrains Mono', monospace", color: "var(--accent-orange)" }}>{emp.flagged_entries}</td>
+                                <td style={{ fontFamily: "'JetBrains Mono', monospace" }}>{emp.total_entries}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Findings Table */}
                   <section className="glass-card animate-in animate-in-delay-2" style={{ padding: "1.5rem" }}>
                     {/* Filters */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "1.25rem" }}>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", alignItems: "center" }}>
+                        <button
+                          onClick={() => setShowFlaggedOnly(!showFlaggedOnly)}
+                          className={`filter-chip ${showFlaggedOnly ? "active" : ""}`}
+                          style={showFlaggedOnly ? { background: "rgba(232, 97, 45, 0.15)", borderColor: "rgba(232, 97, 45, 0.4)" } : {}}
+                        >
+                          {showFlaggedOnly ? "🔍 AI Flagged" : "📋 All Entries"}
+                        </button>
+                        <span style={{ width: "1px", height: "20px", background: "var(--border-subtle)", margin: "0 0.25rem" }} />
                         {["ALL", "CRITICAL", "HIGH", "MODERATE", "LOW"].map((sev) => (
                           <button
                             key={sev}
@@ -922,6 +995,11 @@ function App() {
                               <tr onClick={() => setExpandedId(expandedId === row.id ? null : row.id)}>
                                 <td>
                                   <span style={{ color: SEVERITY_COLORS[row.severity] }}>{SEVERITY_ICON[row.severity]}</span>
+                                  {row.model_agreement >= 3 && (
+                                    <span style={{ fontSize: "0.6rem", color: "var(--accent-copper)", marginLeft: "4px", fontFamily: "'JetBrains Mono', monospace" }}>
+                                      {row.model_agreement}/5
+                                    </span>
+                                  )}
                                 </td>
                                 <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{row.employee}</td>
                                 <td>{row.department}</td>
@@ -931,7 +1009,7 @@ function App() {
                                   {numberFmt.format(Number(row.composite_score || 0))}
                                 </td>
                                 <td style={{ maxWidth: "320px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {row.explanation}
+                                  {row.flag_reason || row.explanation}
                                 </td>
                               </tr>
                               {expandedId === row.id && (

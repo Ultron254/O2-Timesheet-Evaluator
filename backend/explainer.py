@@ -28,6 +28,20 @@ RULE_FINDINGS = {
     "R13": "Hours logged with missing task description.",
     "R14": "More than 5 consecutive workdays above 9 hours.",
     "R15": "Burnout pattern detected (weekend + long days + high monthly total).",
+    "R16": "Weekly hours escalating for 4+ consecutive weeks.",
+    "R17": "Hours logged on a date with no other employees working (ghost entry).",
+    "R18": "Over 80% of entries are exact whole numbers — likely estimated, not tracked.",
+    "R19": "Duplicate entry detected: same employee, date, task, and hours repeated.",
+    "R20": "More than 5 unique clients/projects in a single day (project hopping).",
+}
+
+CONFIDENCE_LABELS = {
+    5: "Very High",
+    4: "High",
+    3: "Moderate",
+    2: "Low",
+    1: "Low",
+    0: "None",
 }
 
 
@@ -119,15 +133,82 @@ def build_explanation(row: pd.Series) -> str:
 
     recommendation = _recommendation(severity, rules)
 
+    # Confidence from model agreement
+    agreement = int(row.get("model_agreement", 0))
+    confidence = CONFIDENCE_LABELS.get(agreement, "Low")
+    confidence_line = f"Confidence: {confidence} ({agreement}/5 models agree)."
+
+    # Peer context
+    peer_ratio = float(row.get("peer_ratio", 1.0))
+    peer_pct = float(row.get("peer_rank_percentile", 50.0))
+    peer_line = f"Peer standing: {peer_ratio:.1f}x department median, {peer_pct:.0f}th percentile."
+
     return (
         f"{icon} {severity} — {employee} on {date_text}\n\n"
         f"Finding: {finding}\n"
         f"Evidence: {evidence}\n"
         f"Context: {context}\n"
+        f"{peer_line}\n"
+        f"{confidence_line}\n"
         f"Triggered by: {triggered_by}\n"
         f"Recommendation: {recommendation}"
     )
 
 
+def build_flag_reason(row: pd.Series) -> str:
+    """Return a single human-readable sentence explaining why this entry was flagged."""
+    rules = list(row.get("rules_triggered", []))
+    hours = float(row.get("hours", 0.0))
+    daily = float(row.get("daily_total_hours", 0.0))
+    peer_ratio = float(row.get("peer_ratio", 1.0))
+    score = float(row.get("composite_score", 0.0))
+
+    if "R01" in rules:
+        return f"{hours:.1f}h in one entry — physically impossible."
+    if "R02" in rules:
+        return f"{daily:.1f}h daily total — exceeds 24h limit."
+    if "R03" in rules:
+        return f"{daily:.1f}h daily total — extreme workday (>16h)."
+    if "R15" in rules:
+        return "Burnout pattern: weekend work + long days + high monthly total."
+    if "R19" in rules:
+        return "Duplicate entry: same employee, date, task, and hours repeated."
+    if "R17" in rules:
+        return "Ghost entry: hours logged when no other employees worked."
+    if "R14" in rules:
+        return "Chronic overtime: >5 consecutive workdays above 9 hours."
+    if "R06" in rules:
+        return f"Extreme week: {float(row.get('weekly_total_hours', 0.0)):.0f}h weekly total."
+    if "R08" in rules:
+        return f"Extreme month: {float(row.get('monthly_total_hours', 0.0)):.0f}h monthly total."
+    if "R12" in rules:
+        return "Suspicious uniformity: exactly 8h for 15+ consecutive workdays."
+    if "R18" in rules:
+        return f"{float(row.get('round_number_ratio', 0.0)) * 100:.0f}% round-number entries — likely estimated."
+    if "R20" in rules:
+        return f"{int(row.get('daily_unique_clients', 0))} clients in one day — excessive project hopping."
+    if "R16" in rules:
+        return "Weekly hours escalating steadily over 4+ weeks."
+    if "R04" in rules or "R05" in rules:
+        return f"{daily:.1f}h daily total — above normal threshold."
+    if "R11" in rules:
+        return "Extended hours on a holiday-tagged day."
+    if "R10" in rules:
+        return "Work logged on a weekend."
+    if "R13" in rules:
+        return "Hours logged with no task description."
+    if peer_ratio >= 2.5:
+        return f"{peer_ratio:.1f}x department average — significant outlier."
+    if score >= 85:
+        return f"Composite score {score:.0f} — critical anomaly range."
+    if score >= 65:
+        return f"Composite score {score:.0f} — high-risk anomaly range."
+    return f"Anomaly score {score:.0f} — flagged for review."
+
+
 def generate_explanations(df: pd.DataFrame) -> pd.Series:
     return df.apply(build_explanation, axis=1)
+
+
+def generate_flag_reasons(df: pd.DataFrame) -> pd.Series:
+    return df.apply(build_flag_reason, axis=1)

@@ -23,11 +23,11 @@ from .database import (
     insert_summary,
     update_upload,
 )
-from .explainer import generate_explanations
+from .explainer import generate_explanations, generate_flag_reasons
 from .features import engineer_features
 from .ingestion import load_and_clean_timesheet
 from .models import run_model_ensemble
-from .rules import combine_severity, severity_from_score, apply_rules
+from .rules import combine_severity, severity_from_score, apply_rules, flag_for_review
 
 
 APP_TITLE = "TimesheetIQ API"
@@ -93,6 +93,34 @@ def _build_summary(df: pd.DataFrame, model_meta: Dict[str, Any]) -> Dict[str, An
         "score_histogram": histogram.to_dict(orient="records"),
     }
 
+    # ── Flag statistics ──
+    flagged_count = int(df["ai_recommended"].sum()) if "ai_recommended" in df.columns else 0
+    flagged_pct = round(flagged_count / total_entries * 100.0, 1) if total_entries > 0 else 0.0
+    flagged_hours = float(df.loc[df.get("ai_recommended", False) == True, "hours"].sum()) if "ai_recommended" in df.columns else 0.0
+    summary_json["flagged_count"] = flagged_count
+    summary_json["flagged_pct"] = flagged_pct
+    summary_json["flagged_hours"] = round(flagged_hours, 2)
+
+    # ── Employee risk scores (top 10) ──
+    if "ai_recommended" in df.columns:
+        emp_risk = (
+            df.groupby("employee")
+            .agg(
+                mean_score=("composite_score", "mean"),
+                max_score=("composite_score", "max"),
+                flagged_entries=("ai_recommended", "sum"),
+                total_entries=("hours", "size"),
+            )
+            .assign(risk_score=lambda x: (x["mean_score"] * 0.4 + x["max_score"] * 0.6))
+            .sort_values("risk_score", ascending=False)
+            .head(10)
+            .reset_index()
+        )
+        emp_risk["flagged_entries"] = emp_risk["flagged_entries"].astype(int)
+        emp_risk["total_entries"] = emp_risk["total_entries"].astype(int)
+        emp_risk = emp_risk.round({"mean_score": 1, "max_score": 1, "risk_score": 1})
+        summary_json["top_risk_employees"] = emp_risk.to_dict(orient="records")
+
     return {
         "total_entries": total_entries,
         "critical_count": counts["CRITICAL"],
@@ -139,6 +167,9 @@ def _to_finding_records(df: pd.DataFrame) -> List[Dict[str, Any]]:
                 "rules_triggered": list(row.get("rules_triggered", [])),
                 "ml_scores": ml_scores,
                 "explanation": str(row.get("explanation", "")),
+                "ai_recommended": int(bool(row.get("ai_recommended", False))),
+                "flag_reason": str(row.get("flag_reason", "")),
+                "model_agreement": int(row.get("model_agreement", 0)),
             }
         )
     return records
@@ -155,7 +186,9 @@ def _run_analysis_pipeline(upload_id: int, file_path: str) -> None:
             combine_severity(ml, rule)
             for ml, rule in zip(ruled["ml_severity"], ruled["rule_max_severity"])
         ]
+        ruled = flag_for_review(ruled)
         ruled["explanation"] = generate_explanations(ruled)
+        ruled["flag_reason"] = generate_flag_reasons(ruled)
 
         clear_findings(upload_id)
         finding_records = _to_finding_records(ruled)
