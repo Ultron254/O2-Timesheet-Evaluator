@@ -1,8 +1,11 @@
 name: Deploy to Server
 
 on:
-  push:
-    branches: [master]
+  # Manual trigger only — go to Actions tab → Deploy to Server → Run workflow
+  workflow_dispatch:
+  # Uncomment the lines below to auto-deploy on every push once secrets are set:
+  # push:
+  #   branches: [master]
 
 # Only one deploy at a time
 concurrency:
@@ -13,9 +16,14 @@ jobs:
   deploy:
     name: Deploy to Ubuntu Server
     runs-on: ubuntu-latest
-    # Only deploy after CI passes
-    needs: []
     steps:
+      - name: Check secrets are configured
+        run: |
+          if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+            echo "❌ SERVER_HOST secret is not set. Go to repo Settings → Secrets → Actions to add it."
+            exit 1
+          fi
+
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1
         with:
