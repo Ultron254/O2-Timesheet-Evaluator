@@ -898,7 +898,7 @@ function App() {
               <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-orange)", marginBottom: "0.25rem" }}>
                 TimesheetIQ
               </p>
-              <h1 className="gradient-text" style={{ fontSize: "clamp(1.25rem, 3vw, 1.85rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0, WebkitTextFillColor: "transparent" }}>
+              <h1 style={{ fontSize: "clamp(1.25rem, 3vw, 1.85rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0, color: "var(--accent-orange)" }}>
                 AI-Powered Timesheet Anomaly Detection
               </h1>
             </div>
