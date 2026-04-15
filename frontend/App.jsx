@@ -194,11 +194,11 @@ function buildTimeline(findings) {
 // ─── Chart Theme ─────────────────────────────────────
 
 const CHART_THEME = {
-  bg: "#0d1520",
-  grid: "rgba(198, 133, 80, 0.06)",
-  axis: "#475569",
+  bg: "#ffffff",
+  grid: "rgba(0, 0, 0, 0.06)",
+  axis: "#94a3b8",
   tooltip: {
-    backgroundColor: "rgba(11, 17, 32, 0.95)",
+    backgroundColor: "rgba(26, 35, 50, 0.95)",
     border: "1px solid rgba(198, 133, 80, 0.25)",
     borderRadius: "12px",
     color: "#f1f5f9",
@@ -286,10 +286,10 @@ function UploadZone({ onFile, uploading }) {
             </defs>
           </svg>
         </div>
-        <p style={{ fontSize: "1.5rem", fontWeight: 600, color: "#f1f5f9", marginBottom: "0.5rem", letterSpacing: "-0.02em" }}>
+        <p style={{ fontSize: "1.5rem", fontWeight: 600, color: "var(--text-primary)", marginBottom: "0.5rem", letterSpacing: "-0.02em" }}>
           Drop your timesheet here
         </p>
-        <p style={{ fontSize: "0.875rem", color: "#94a3b8", marginBottom: "1.5rem" }}>
+        <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)", marginBottom: "1.5rem" }}>
           or click to browse — accepts .xlsx, .xls, .csv
         </p>
         <label className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", cursor: "pointer" }}>

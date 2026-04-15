@@ -4,12 +4,12 @@
 
 /* ─── Design Tokens ─── */
 :root {
-  --bg-deep: #0b1120;
-  --bg-surface: #111827;
-  --bg-card: rgba(17, 24, 39, 0.75);
-  --bg-card-hover: rgba(26, 35, 50, 0.88);
-  --bg-elevated: rgba(42, 48, 66, 0.5);
-  --border-subtle: rgba(148, 163, 184, 0.08);
+  --bg-deep: #ffffff;
+  --bg-surface: #f8f9fb;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-elevated: rgba(248, 249, 251, 0.9);
+  --border-subtle: rgba(0, 0, 0, 0.08);
   --border-glow: rgba(232, 97, 45, 0.3);
   --accent-orange: #e8612d;
   --accent-orange-light: #f4845f;
@@ -20,9 +20,9 @@
   --accent-copper-light: #d4976a;
   --accent-bronze: #b8734a;
   --accent-emerald: #10b981;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #1a2332;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
   --glass-blur: 20px;
   --radius-lg: 20px;
   --radius-xl: 28px;
@@ -46,11 +46,12 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: var(--bg-deep);
+  background: #ffffff;
   background-image:
-    radial-gradient(ellipse at 10% 0%, rgba(232, 97, 45, 0.05) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 100%, rgba(198, 133, 80, 0.04) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 50%, rgba(17, 24, 39, 1) 0%, transparent 80%);
+    radial-gradient(ellipse at 0% 0%, rgba(232, 97, 45, 0.15) 0%, transparent 40%),
+    radial-gradient(ellipse at 100% 0%, rgba(26, 35, 50, 0.12) 0%, transparent 40%),
+    radial-gradient(ellipse at 100% 100%, rgba(198, 133, 80, 0.13) 0%, transparent 40%),
+    radial-gradient(ellipse at 0% 100%, rgba(245, 158, 11, 0.10) 0%, transparent 40%);
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
@@ -187,15 +188,15 @@ body {
 
 .glass-card:hover {
   background: var(--bg-card-hover);
-  border-color: rgba(198, 133, 80, 0.18);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(198, 133, 80, 0.06);
+  border-color: rgba(198, 133, 80, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(198, 133, 80, 0.1);
 }
 
 .glass-dark {
-  background: rgba(6, 8, 15, 0.8);
+  background: rgba(26, 35, 50, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(198, 133, 80, 0.1);
+  border: 1px solid rgba(198, 133, 80, 0.15);
 }
 
 /* ─── Animated Entrance ─── */
@@ -231,10 +232,10 @@ body {
 .upload-zone {
   position: relative;
   border-radius: var(--radius-xl);
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 2px dashed rgba(148, 163, 184, 0.2);
+  border: 2px dashed rgba(26, 35, 50, 0.15);
   transition: all 0.5s var(--transition-smooth);
   overflow: hidden;
   perspective: 800px;
@@ -453,16 +454,16 @@ body {
 }
 
 .data-table-wrap::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(241, 245, 249, 0.8);
 }
 
 .data-table-wrap::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 3px;
 }
 
 .data-table-wrap::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.5);
 }
 
 .data-table {
@@ -475,7 +476,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(15, 23, 42, 0.95);
+  background: rgba(248, 249, 251, 0.97);
   backdrop-filter: blur(8px);
 }
 
@@ -498,13 +499,13 @@ body {
 }
 
 .data-table tbody tr {
-  border-top: 1px solid rgba(148, 163, 184, 0.06);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   transition: background 0.2s;
   cursor: pointer;
 }
 
 .data-table tbody tr:hover {
-  background: rgba(232, 97, 45, 0.04);
+  background: rgba(232, 97, 45, 0.05);
 }
 
 .data-table tbody td {
@@ -514,7 +515,7 @@ body {
 }
 
 .data-table .expanded-row {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(248, 249, 251, 0.8);
   animation: fadeIn 0.3s var(--transition-smooth);
 }
 
@@ -558,21 +559,21 @@ body {
 .skeleton {
   border-radius: var(--radius-lg);
   background: linear-gradient(90deg,
-      rgba(30, 41, 59, 0.4) 25%,
-      rgba(51, 65, 85, 0.5) 50%,
-      rgba(30, 41, 59, 0.4) 75%);
+      rgba(226, 232, 240, 0.5) 25%,
+      rgba(241, 245, 249, 0.7) 50%,
+      rgba(226, 232, 240, 0.5) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
 
-/* ─── Input Fields (dark theme) ─── */
+/* ─── Input Fields ─── */
 .input-field {
   padding: 0.55rem 0.85rem;
   border-radius: 10px;
   font-size: 0.8125rem;
   color: var(--text-primary);
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   outline: none;
   transition: all 0.3s;
   font-family: inherit;
@@ -598,13 +599,13 @@ select.input-field {
 }
 
 select.input-field option {
-  background: #1e293b;
+  background: #ffffff;
   color: var(--text-primary);
 }
 
 /* ─── Gradient Text ─── */
 .gradient-text {
-  background: linear-gradient(135deg, #ffffff 0%, var(--accent-copper-light) 35%, var(--accent-orange) 65%, var(--accent-warm) 100%);
+  background: linear-gradient(135deg, var(--accent-navy) 0%, var(--accent-copper) 35%, var(--accent-orange) 65%, var(--accent-warm) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -629,7 +630,7 @@ select.input-field option {
 
 /* ─── Rule Card ─── */
 .rule-card {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 1.25rem;
@@ -637,10 +638,10 @@ select.input-field option {
 }
 
 .rule-card:hover {
-  background: rgba(24, 34, 56, 0.65);
-  border-color: rgba(198, 133, 80, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(198, 133, 80, 0.25);
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 /* ─── Severity Badge ─── */
@@ -672,7 +673,7 @@ select.input-field option {
   }
 }
 
-/* ─── Ambient Wave Background (Oxygène inspired) ─── */
+/* ─── Ambient Corner Glow (Oxygène inspired) ─── */
 .ambient-glow {
   position: fixed;
   top: 0;
@@ -682,39 +683,4 @@ select.input-field option {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-  background:
-    radial-gradient(ellipse at 20% 40%, rgba(232, 97, 45, 0.04) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 70%, rgba(198, 133, 80, 0.035) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 90%, rgba(184, 115, 74, 0.025) 0%, transparent 50%);
-}
-
-.ambient-glow::before {
-  content: '';
-  position: absolute;
-  bottom: -20%;
-  right: -10%;
-  width: 120%;
-  height: 80%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 600' preserveAspectRatio='none'%3E%3Cpath d='M0 400C180 350 360 200 540 250S900 450 1080 350S1350 200 1440 280L1440 600L0 600Z' fill='rgba(26,35,50,0.6)'/%3E%3Cpath d='M0 450C200 380 400 280 600 330S880 500 1100 400S1350 280 1440 340L1440 600L0 600Z' fill='rgba(198,133,80,0.08)'/%3E%3Cpath d='M0 500C240 440 480 350 720 400S1000 530 1200 460S1380 350 1440 400L1440 600L0 600Z' fill='rgba(184,115,74,0.06)'/%3E%3C/svg%3E") no-repeat bottom center;
-  background-size: cover;
-  opacity: 1;
-  animation: waveFloat 8s ease-in-out infinite;
-}
-
-.ambient-glow::after {
-  content: '';
-  position: absolute;
-  top: -15%;
-  left: -5%;
-  width: 110%;
-  height: 65%;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 400' preserveAspectRatio='none'%3E%3Cpath d='M0 200C200 100 400 250 700 150S1100 50 1440 150L1440 0L0 0Z' fill='rgba(26,35,50,0.5)'/%3E%3Cpath d='M0 120C300 60 500 200 800 120S1200 30 1440 100L1440 0L0 0Z' fill='rgba(198,133,80,0.04)'/%3E%3C/svg%3E") no-repeat top center;
-  background-size: cover;
-  opacity: 1;
-  animation: waveFloat 10s ease-in-out infinite reverse;
-}
-
-@keyframes waveFloat {
-  0%, 100% { transform: translateY(0px) scale(1); }
-  50% { transform: translateY(-12px) scale(1.01); }
 }
