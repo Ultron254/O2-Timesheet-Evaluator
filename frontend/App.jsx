@@ -193,12 +193,26 @@ function buildTimeline(findings) {
 
 // ─── Chart Theme ─────────────────────────────────────
 
-const CHART_THEME = {
+const CHART_THEME_LIGHT = {
   bg: "#ffffff",
   grid: "rgba(0, 0, 0, 0.06)",
   axis: "#94a3b8",
   tooltip: {
     backgroundColor: "rgba(26, 35, 50, 0.95)",
+    border: "1px solid rgba(198, 133, 80, 0.25)",
+    borderRadius: "12px",
+    color: "#f1f5f9",
+    fontSize: "0.8125rem",
+    padding: "8px 14px",
+  },
+};
+
+const CHART_THEME_DARK = {
+  bg: "#0d1520",
+  grid: "rgba(198, 133, 80, 0.06)",
+  axis: "#475569",
+  tooltip: {
+    backgroundColor: "rgba(11, 17, 32, 0.95)",
     border: "1px solid rgba(198, 133, 80, 0.25)",
     borderRadius: "12px",
     color: "#f1f5f9",
@@ -508,8 +522,10 @@ function PlainLanguageHelp({ onOpenExplanations }) {
 
 function ChartTooltipContent({ active, payload, label, formatter, labelFormatter }) {
   if (!active || !payload || payload.length === 0) return null;
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const tooltipStyle = isDark ? CHART_THEME_DARK.tooltip : CHART_THEME_LIGHT.tooltip;
   return (
-    <div style={CHART_THEME.tooltip}>
+    <div style={tooltipStyle}>
       {label != null && (
         <p style={{ fontSize: "0.75rem", color: "#94a3b8", marginBottom: "4px" }}>
           {labelFormatter ? labelFormatter(label) : label}
@@ -550,8 +566,25 @@ function App() {
   const [activePage, setActivePage] = useState("analyzer");
   const [currentPage, setCurrentPage] = useState(0);
   const [showFlaggedOnly, setShowFlaggedOnly] = useState(true);
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("timesheetiq-theme");
+      if (stored === "dark" || stored === "light") return stored;
+    }
+    return "light";
+  });
   const pollFailureRef = useRef(0);
   const searchTimerRef = useRef(null);
+
+  const CHART_THEME = theme === "dark" ? CHART_THEME_DARK : CHART_THEME_LIGHT;
+
+  // Apply theme to DOM
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("timesheetiq-theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
 
   // Debounce search input by 300ms
   const handleSearchChange = useCallback((value) => {
@@ -795,26 +828,42 @@ function App() {
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
 
           {/* ── Header ─────────────────────────────── */}
-          <header className="glass-dark animate-in" style={{ borderRadius: "var(--radius-xl)", padding: "1.75rem 2rem", position: "relative", overflow: "hidden" }}>
+          <header className="glass-dark animate-in" style={{ borderRadius: "var(--radius-xl)", padding: "1.5rem 2rem", position: "relative", overflow: "hidden" }}>
             {/* Gradient accent line */}
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg, var(--accent-orange), var(--accent-warm), var(--accent-orange-light))", opacity: 0.7 }} />
 
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1.25rem" }}>
-                <img src="/oxygene-logo.png" alt="Oxygène" style={{ height: "40px", width: "auto", objectFit: "contain" }} />
-                <div>
-                  <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6875rem", textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-orange)", marginBottom: "0.35rem" }}>
+            {/* Top row: Logo + Title + Theme Toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem", minWidth: 0 }}>
+                <img src="/oxygene-logo.png" alt="Oxygène" style={{ height: "36px", width: "auto", objectFit: "contain", flexShrink: 0 }} />
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.625rem", textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-orange)", marginBottom: "0.2rem" }}>
                     TimesheetIQ
                   </p>
-                  <h1 className="gradient-text" style={{ fontSize: "clamp(1.35rem, 2.8vw, 1.85rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0 }}>
+                  <h1 className="gradient-text" style={{ fontSize: "clamp(1.1rem, 2.5vw, 1.65rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0, WebkitTextFillColor: "transparent" }}>
                     AI-Powered Timesheet Anomaly Detection
                   </h1>
-                  <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--text-muted)", marginTop: "0.4rem" }}>
-                    Precise. Transparent. Accountable.
-                  </p>
                 </div>
               </div>
 
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`theme-toggle ${theme === "dark" ? "dark" : ""}`}
+                title={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+                aria-label="Toggle theme"
+              >
+                <span className="toggle-knob">
+                  {theme === "light" ? "☀" : "🌙"}
+                </span>
+              </button>
+            </div>
+
+            {/* Bottom row: Tagline + Nav */}
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
+              <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.575rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--header-muted)", margin: 0 }}>
+                Precise. Transparent. Accountable.
+              </p>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
                 <button
                   onClick={() => setActivePage("analyzer")}
@@ -832,7 +881,7 @@ function App() {
                   onClick={exportReport}
                   disabled={!uploadId || loading}
                   className="btn-primary"
-                  style={{ marginLeft: "0.5rem" }}
+                  style={{ marginLeft: "0.25rem" }}
                 >
                   ↓ Download Report
                 </button>
@@ -840,8 +889,8 @@ function App() {
             </div>
 
             {uploadName && (
-              <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginTop: "1rem" }}>
-                Current file: <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>{uploadName}</span>
+              <p style={{ fontSize: "0.8125rem", color: "var(--header-muted)", marginTop: "1rem" }}>
+                Current file: <span style={{ color: "var(--header-text)", fontWeight: 500 }}>{uploadName}</span>
               </p>
             )}
             {statusMessage && (

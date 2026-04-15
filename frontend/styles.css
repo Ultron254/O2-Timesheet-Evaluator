@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── Design Tokens ─── */
-:root {
+/* ─── Design Tokens (Light) ─── */
+:root, [data-theme="light"] {
   --bg-deep: #ffffff;
   --bg-surface: #f8f9fb;
   --bg-card: rgba(255, 255, 255, 0.85);
@@ -23,10 +23,58 @@
   --text-primary: #1a2332;
   --text-secondary: #475569;
   --text-muted: #94a3b8;
+  --header-bg: rgba(26, 35, 50, 0.95);
+  --header-text: #f1f5f9;
+  --header-muted: #94a3b8;
+  --input-bg: rgba(255, 255, 255, 0.9);
+  --input-border: rgba(0, 0, 0, 0.12);
+  --option-bg: #ffffff;
+  --table-head-bg: rgba(248, 249, 251, 0.97);
+  --expanded-bg: rgba(248, 249, 251, 0.8);
+  --skeleton-from: rgba(226, 232, 240, 0.5);
+  --skeleton-mid: rgba(241, 245, 249, 0.7);
+  --scrollbar-track: rgba(241, 245, 249, 0.8);
+  --scrollbar-thumb: rgba(148, 163, 184, 0.35);
+  --scrollbar-thumb-hover: rgba(148, 163, 184, 0.5);
+  --body-gradient-tl: rgba(232, 97, 45, 0.13);
+  --body-gradient-tr: rgba(26, 35, 50, 0.10);
+  --body-gradient-br: rgba(198, 133, 80, 0.11);
+  --body-gradient-bl: rgba(245, 158, 11, 0.09);
   --glass-blur: 20px;
   --radius-lg: 20px;
   --radius-xl: 28px;
   --transition-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ─── Design Tokens (Dark) ─── */
+[data-theme="dark"] {
+  --bg-deep: #0b1120;
+  --bg-surface: #111827;
+  --bg-card: rgba(17, 24, 39, 0.75);
+  --bg-card-hover: rgba(26, 35, 50, 0.88);
+  --bg-elevated: rgba(42, 48, 66, 0.5);
+  --border-subtle: rgba(148, 163, 184, 0.08);
+  --border-glow: rgba(232, 97, 45, 0.3);
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --header-bg: rgba(6, 8, 15, 0.8);
+  --header-text: #f1f5f9;
+  --header-muted: #64748b;
+  --input-bg: rgba(15, 23, 42, 0.6);
+  --input-border: rgba(148, 163, 184, 0.08);
+  --option-bg: #1e293b;
+  --table-head-bg: rgba(15, 23, 42, 0.95);
+  --expanded-bg: rgba(15, 23, 42, 0.6);
+  --skeleton-from: rgba(30, 41, 59, 0.4);
+  --skeleton-mid: rgba(51, 65, 85, 0.5);
+  --scrollbar-track: rgba(15, 23, 42, 0.5);
+  --scrollbar-thumb: rgba(148, 163, 184, 0.25);
+  --scrollbar-thumb-hover: rgba(148, 163, 184, 0.4);
+  --body-gradient-tl: rgba(232, 97, 45, 0.06);
+  --body-gradient-tr: rgba(26, 35, 50, 0.4);
+  --body-gradient-br: rgba(198, 133, 80, 0.05);
+  --body-gradient-bl: rgba(245, 158, 11, 0.04);
 }
 
 /* ─── Base Reset ─── */
@@ -46,15 +94,17 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: #ffffff;
+  background: var(--bg-deep);
   background-image:
-    radial-gradient(ellipse at 0% 0%, rgba(232, 97, 45, 0.15) 0%, transparent 40%),
-    radial-gradient(ellipse at 100% 0%, rgba(26, 35, 50, 0.12) 0%, transparent 40%),
-    radial-gradient(ellipse at 100% 100%, rgba(198, 133, 80, 0.13) 0%, transparent 40%),
-    radial-gradient(ellipse at 0% 100%, rgba(245, 158, 11, 0.10) 0%, transparent 40%);
+    radial-gradient(ellipse at 0% 0%, var(--body-gradient-tl) 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 0%, var(--body-gradient-tr) 0%, transparent 45%),
+    radial-gradient(ellipse at 100% 100%, var(--body-gradient-br) 0%, transparent 45%),
+    radial-gradient(ellipse at 0% 100%, var(--body-gradient-bl) 0%, transparent 45%);
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.3s ease;
 }
 
 #root {
@@ -192,8 +242,12 @@ body {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(198, 133, 80, 0.1);
 }
 
+[data-theme="dark"] .glass-card:hover {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(198, 133, 80, 0.06);
+}
+
 .glass-dark {
-  background: rgba(26, 35, 50, 0.95);
+  background: var(--header-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(198, 133, 80, 0.15);
@@ -232,10 +286,10 @@ body {
 .upload-zone {
   position: relative;
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-card);
   backdrop-filter: blur(var(--glass-blur));
   -webkit-backdrop-filter: blur(var(--glass-blur));
-  border: 2px dashed rgba(26, 35, 50, 0.15);
+  border: 2px dashed var(--border-subtle);
   transition: all 0.5s var(--transition-smooth);
   overflow: hidden;
   perspective: 800px;
@@ -338,16 +392,17 @@ body {
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.65);
   background: transparent;
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
   cursor: pointer;
   transition: all 0.3s var(--transition-smooth);
 }
 
 .nav-pill:hover {
-  color: var(--text-primary);
-  background: rgba(148, 163, 184, 0.08);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 .nav-pill.active {
@@ -454,16 +509,16 @@ body {
 }
 
 .data-table-wrap::-webkit-scrollbar-track {
-  background: rgba(241, 245, 249, 0.8);
+  background: var(--scrollbar-track);
 }
 
 .data-table-wrap::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.35);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 
 .data-table-wrap::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: var(--scrollbar-thumb-hover);
 }
 
 .data-table {
@@ -476,7 +531,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(248, 249, 251, 0.97);
+  background: var(--table-head-bg);
   backdrop-filter: blur(8px);
 }
 
@@ -499,7 +554,7 @@ body {
 }
 
 .data-table tbody tr {
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border-subtle);
   transition: background 0.2s;
   cursor: pointer;
 }
@@ -515,7 +570,7 @@ body {
 }
 
 .data-table .expanded-row {
-  background: rgba(248, 249, 251, 0.8);
+  background: var(--expanded-bg);
   animation: fadeIn 0.3s var(--transition-smooth);
 }
 
@@ -559,9 +614,9 @@ body {
 .skeleton {
   border-radius: var(--radius-lg);
   background: linear-gradient(90deg,
-      rgba(226, 232, 240, 0.5) 25%,
-      rgba(241, 245, 249, 0.7) 50%,
-      rgba(226, 232, 240, 0.5) 75%);
+      var(--skeleton-from) 25%,
+      var(--skeleton-mid) 50%,
+      var(--skeleton-from) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.8s ease-in-out infinite;
 }
@@ -572,8 +627,8 @@ body {
   border-radius: 10px;
   font-size: 0.8125rem;
   color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   outline: none;
   transition: all 0.3s;
   font-family: inherit;
@@ -599,7 +654,7 @@ select.input-field {
 }
 
 select.input-field option {
-  background: #ffffff;
+  background: var(--option-bg);
   color: var(--text-primary);
 }
 
@@ -608,6 +663,12 @@ select.input-field option {
   background: linear-gradient(135deg, var(--accent-navy) 0%, var(--accent-copper) 35%, var(--accent-orange) 65%, var(--accent-warm) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+[data-theme="dark"] .gradient-text {
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent-copper-light) 35%, var(--accent-orange) 65%, var(--accent-warm) 100%);
+  -webkit-background-clip: text;
   background-clip: text;
 }
 
@@ -630,7 +691,7 @@ select.input-field option {
 
 /* ─── Rule Card ─── */
 .rule-card {
-  background: rgba(255, 255, 255, 0.7);
+  background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 16px;
   padding: 1.25rem;
@@ -638,10 +699,14 @@ select.input-field option {
 }
 
 .rule-card:hover {
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--bg-card-hover);
   border-color: rgba(198, 133, 80, 0.25);
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .rule-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 /* ─── Severity Badge ─── */
@@ -683,4 +748,50 @@ select.input-field option {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
+}
+
+/* ─── Theme Toggle ─── */
+.theme-toggle {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.35s var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  padding: 0 3px;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.theme-toggle .toggle-knob {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.35s var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.theme-toggle.dark .toggle-knob {
+  transform: translateX(22px);
+  background: var(--accent-navy);
+}
+
+/* ─── Transitions for theme switch ─── */
+.glass-card, .glass-dark, .upload-zone, .rule-card, .score-card, .data-table thead,
+.data-table .expanded-row, .input-field, .btn-secondary, .filter-chip, .skeleton {
+  transition: background 0.35s ease, border-color 0.35s ease, color 0.3s ease, box-shadow 0.35s ease;
 }
