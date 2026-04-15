@@ -543,6 +543,51 @@ function ChartTooltipContent({ active, payload, label, formatter, labelFormatter
   );
 }
 
+// ─── Floating Background Icons ──────────────────────
+
+const FLOAT_ICONS = [
+  // Clock
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`, size: 32, x: 8, y: 15, duration: 22, delay: 0 },
+  // Hourglass
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>`, size: 28, x: 85, y: 25, duration: 26, delay: 3 },
+  // Shield/check
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>`, size: 30, x: 92, y: 70, duration: 24, delay: 6 },
+  // Bar chart
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`, size: 26, x: 5, y: 65, duration: 20, delay: 9 },
+  // Calendar
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`, size: 24, x: 70, y: 80, duration: 28, delay: 2 },
+  // File/document
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`, size: 22, x: 30, y: 85, duration: 25, delay: 5 },
+  // Eye/monitor
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`, size: 26, x: 50, y: 10, duration: 30, delay: 8 },
+  // O₂ molecule circle
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="8" cy="12" r="5" opacity="0.6"/><circle cx="16" cy="12" r="5" opacity="0.6"/></svg>`, size: 36, x: 45, y: 55, duration: 35, delay: 12 },
+  // Alert triangle
+  { svg: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`, size: 20, x: 18, y: 40, duration: 23, delay: 15 },
+];
+
+function FloatingIcons() {
+  return (
+    <div className="floating-icons-container">
+      {FLOAT_ICONS.map((icon, i) => (
+        <div
+          key={i}
+          className="floating-icon"
+          style={{
+            left: `${icon.x}%`,
+            top: `${icon.y}%`,
+            width: `${icon.size}px`,
+            height: `${icon.size}px`,
+            animationDuration: `${icon.duration}s`,
+            animationDelay: `${icon.delay}s`,
+          }}
+          dangerouslySetInnerHTML={{ __html: icon.svg }}
+        />
+      ))}
+    </div>
+  );
+}
+
 // ─── Main App ────────────────────────────────────────
 
 function App() {
@@ -821,8 +866,9 @@ function App() {
 
   return (
     <div style={{ minHeight: "100vh", position: "relative" }}>
-      {/* Ambient background glow */}
+      {/* Ambient background glow + floating icons */}
       <div className="ambient-glow" />
+      <FloatingIcons />
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: "1280px", margin: "0 auto", padding: "2rem 1.5rem" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -832,21 +878,9 @@ function App() {
             {/* Gradient accent line */}
             <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "2px", background: "linear-gradient(90deg, var(--accent-orange), var(--accent-warm), var(--accent-orange-light))", opacity: 0.7 }} />
 
-            {/* Top row: Logo + Title + Theme Toggle */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", marginBottom: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem", minWidth: 0 }}>
-                <img src="/oxygene-logo.png" alt="Oxygène" style={{ height: "36px", width: "auto", objectFit: "contain", flexShrink: 0 }} />
-                <div style={{ minWidth: 0 }}>
-                  <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.625rem", textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-orange)", marginBottom: "0.2rem" }}>
-                    TimesheetIQ
-                  </p>
-                  <h1 className="gradient-text" style={{ fontSize: "clamp(1.1rem, 2.5vw, 1.65rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0, WebkitTextFillColor: "transparent" }}>
-                    AI-Powered Timesheet Anomaly Detection
-                  </h1>
-                </div>
-              </div>
-
-              {/* Theme toggle */}
+            {/* Row 1: Logo row with theme toggle */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+              <img src="/oxygene-logo.png" alt="Oxygène" style={{ height: "28px", width: "auto", objectFit: "contain" }} />
               <button
                 onClick={toggleTheme}
                 className={`theme-toggle ${theme === "dark" ? "dark" : ""}`}
@@ -859,9 +893,19 @@ function App() {
               </button>
             </div>
 
-            {/* Bottom row: Tagline + Nav */}
+            {/* Row 2: App title */}
+            <div style={{ marginBottom: "1rem" }}>
+              <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.6rem", textTransform: "uppercase", letterSpacing: "0.2em", color: "var(--accent-orange)", marginBottom: "0.25rem" }}>
+                TimesheetIQ
+              </p>
+              <h1 className="gradient-text" style={{ fontSize: "clamp(1.25rem, 3vw, 1.85rem)", fontWeight: 700, letterSpacing: "-0.03em", margin: 0, WebkitTextFillColor: "transparent" }}>
+                AI-Powered Timesheet Anomaly Detection
+              </h1>
+            </div>
+
+            {/* Row 3: Tagline + Nav */}
             <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
-              <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.575rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--header-muted)", margin: 0 }}>
+              <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "0.55rem", textTransform: "uppercase", letterSpacing: "0.18em", color: "var(--header-muted)", margin: 0 }}>
                 Precise. Transparent. Accountable.
               </p>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
